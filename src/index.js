@@ -5,18 +5,27 @@ const socketio = require('socket.io')
 
 const app = express()
 const server = http.createServer(app)
-// var io = require(socketio).listen(server);
 const io = socketio(server)
 
 const port = process.env.PORT || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
-
 app.use(express.static(publicDirectoryPath))
 
-io.on('connection', () => {
+let count = 0
+io.on('connection', (socket) => {
     console.log('New websocket connection')
+
+    socket.emit('message', 'welcome!')
+
+    socket.on('sendMessage', (message)=>{
+        io.emit('message', message)
+    })
+
+    socket.on('disconnect', () => {
+        console.log('websocket disconnected')
+    })
 })
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is up on port ${port}!`)
 })
