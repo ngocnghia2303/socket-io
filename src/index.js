@@ -3,6 +3,7 @@ const path = require('path')
 const http = require('http')
 const socketio = require('socket.io')
 const Filter = require('bad-words')
+const {generateMessage, generateLocationMessage} = require('./utils/messages.js')
 
 const app = express()
 const server = http.createServer(app)
@@ -16,10 +17,10 @@ let count = 0
 io.on('connection', (socket) => {
     console.log('New websocket connection')
     //Welcome user when you join app
-    socket.emit('message', 'welcome!')
+    socket.emit('message', generateMessage('Welcome!'))
 
     //notification to all users connected server
-    socket.broadcast.emit('message', 'Co user moi ket noi Server')
+    socket.broadcast.emit('message', generateMessage('A new user has joined!'))
 
     //Send message to another user connected server
     socket.on('sendMessage', (message, callback)=>{
@@ -28,19 +29,19 @@ io.on('connection', (socket) => {
         if(filter.isProfane(message)){
             return console.log('Profanity is not allowed!')
         }
-        io.emit('message', message)
+        io.emit('message', generateMessage(message))
         callback()
     })
 
     //Share your location to another user connected server
     socket.on('sendLocation', (coords, callback)=>{
-        io.emit('message', coords)
+        io.emit('locationMessage', generateLocationMessage(coords))
         callback()
     })
     
     //notification to another user when have a user leave server
     socket.on('disconnect', () => {
-        io.emit('message', 'Co user leave Server')
+        io.emit('message', generateMessage('A user has left!'))
     })
 })
 
