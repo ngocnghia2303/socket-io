@@ -7,9 +7,14 @@ const $formButton = $messageForm.querySelector('Button')
 const $sendGeo = document.querySelector('#send-geo')
 const $messages = document.querySelector('#messages')
 
+//links.mead.io/chatassets
+
 //template
 const messageTemplate = document.querySelector('#message-template').innerHTML
 const locationMessageTemplate = document.querySelector('#location-message-template').innerHTML
+
+//options
+const { room, username } = Qs.parse(location.search, { ignoreQueryPrefix: true })
 
 socket.on('message', (message) => {
     console.log(message)
@@ -69,3 +74,5 @@ $sendGeo.addEventListener('click', () => {
 
     })
 })
+
+socket.emit('join', {username, room})
