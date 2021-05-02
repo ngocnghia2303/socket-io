@@ -4,6 +4,7 @@ const http = require('http')
 const socketio = require('socket.io')
 const Filter = require('bad-words')
 const { generateMessage, generateLocationMessage } = require('./utils/messages.js')
+const { addUser, removeUser, getUser, getUsersInRoom } = require('./utils/users')
 
 const app = express()
 const server = http.createServer(app)
@@ -17,8 +18,14 @@ let count = 0
 io.on('connection', (socket) => {
     console.log('New websocket connection')
 
-    socket.on('join', ({ username, room }) => {
-        socket.join(room)
+    socket.on('join', (options, callback) => {
+        const { error, user } = addUser({ id: socket.id, ...options })
+
+        if (error) {
+            return callback(error)
+        }
+
+        socket.join(user.room)
         /*
         Goal: How we're going to communicate with members of a specific room
         Method need to use:
@@ -29,8 +36,9 @@ io.on('connection', (socket) => {
         socket.emit('message', generateMessage('Welcome!'))
 
         //notification to all users connected server
-        socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined!`))
+        socket.broadcast.to(user.room).emit('message', generateMessage(`${user.username} has joined!`))
 
+        callback()
     })
 
     //Send message to another user connected server
@@ -52,7 +60,12 @@ io.on('connection', (socket) => {
 
     //notification to another user when have a user leave server
     socket.on('disconnect', () => {
-        io.emit('message', generateMessage('A user has left!'))
+        const user = removeUser(socket.id)
+
+        if (user) {
+            io.to(user.room).emit('message', generateMessage(`${user.username} has left!`))
+        }
+
     })
 })
 

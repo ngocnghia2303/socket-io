@@ -3,7 +3,7 @@ const users = []
 //add, remove, get, getUserInRoom
 
 //parameter: id, username, room
-const addUser = ({ id, username, room }) => {
+const addUser = ({ id, room, username }) => {
     //clear the data
     username = username.trim().toLowerCase()
     room = room.trim().toLowerCase()
@@ -30,7 +30,7 @@ const addUser = ({ id, username, room }) => {
     //store user
     const user = { id, username, room }
     users.push(user)
-    return { users }
+    return { user }
 }
 
 const removeUser = (id) => {
@@ -51,6 +51,7 @@ const getUsersInRoom = (room) => {
 }
 
 //Testing scripts or prepare user data
+/*
 addUser({
     id: 22,
     username: 'Kim Anh Tran',
@@ -74,6 +75,7 @@ console.log(user)
 
 const listUsers = getUsersInRoom('Linda http')
 console.log(listUsers)
+*/
 
 module.exports = {
     addUser,
