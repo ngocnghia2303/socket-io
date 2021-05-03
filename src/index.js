@@ -26,35 +26,39 @@ io.on('connection', (socket) => {
         }
 
         socket.join(user.room)
-        /*
-        Goal: How we're going to communicate with members of a specific room
-        Method need to use:
-            - io.to.emit
-            - socket.broadcast.to.emit
-        */
+        
         //Welcome user when you join app
-        socket.emit('message', generateMessage('Welcome!'))
+        socket.emit('message', generateMessage('Admin', 'Welcome!'))
 
         //notification to all users connected server
-        socket.broadcast.to(user.room).emit('message', generateMessage(`${user.username} has joined!`))
+        socket.broadcast.to(user.room).emit('message', generateMessage('Admin', `${user.username} has joined!`))
+
+        //Emit user list changes
+        io.to(user.room).emit('roomData', {
+            room: user.room,
+            users: getUsersInRoom(user.room)
+        })
 
         callback()
     })
 
     //Send message to another user connected server
     socket.on('sendMessage', (message, callback) => {
+        const user = getUser(socket.id)
         //filter language in the message after you enter
+
         const filter = new Filter()
         if (filter.isProfane(message)) {
             return console.log('Profanity is not allowed!')
         }
-        io.to('NuiThanh Town').emit('message', generateMessage(message))
+        io.to(user.room).emit('message', generateMessage(user.username, message))
         callback()
     })
 
     //Share your location to another user connected server
     socket.on('sendLocation', (coords, callback) => {
-        io.emit('locationMessage', generateLocationMessage(coords))
+        const user = getUser(socket.id)
+        io.to(user.room).emit('locationMessage', generateLocationMessage(user.username, coords))
         callback()
     })
 
@@ -63,7 +67,11 @@ io.on('connection', (socket) => {
         const user = removeUser(socket.id)
 
         if (user) {
-            io.to(user.room).emit('message', generateMessage(`${user.username} has left!`))
+            io.to(user.room).emit('message', generateMessage('Admin', `${user.username} has left!`))
+            io.to(user.room).emit('roomData', {
+                room: user.room,
+                users: getUsersInRoom(user.room)
+            })
         }
 
     })
